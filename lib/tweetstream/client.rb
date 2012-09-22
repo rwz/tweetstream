@@ -271,6 +271,20 @@ module TweetStream
       on('timeline_status', &block)
     end
 
+    # Set a Proc to be run when a follow event is received
+    # from the Twitter stream. For example:
+    #
+    #     @client = TweetStream::Client.new
+    #     @client.on_follow do |user|
+    #       puts "You are now followed by #{user.screen_name}"
+    #     end
+    #
+    # Block must take one argument: the instance of Twitter::User
+    # class.
+    def on_follow(&block)
+      on('follow', &block)
+    end
+
     # Set a Proc to be run on reconnect.
     #
     #     @client = TweetStream::Client.new
@@ -455,6 +469,8 @@ module TweetStream
         invoke_callback(callbacks['status_withheld'], hash[:status_withheld])
       elsif hash[:user_withheld]
         invoke_callback(callbacks['user_withheld'], hash[:user_withheld])
+      elsif hash[:event] == 'follow'
+        invoke_callback(callbacks['follow'], Twitter::User.new(hash[:source]))
       elsif hash[:event]
         invoke_callback(callbacks[hash[:event].to_s], hash)
       elsif hash[:text] && hash[:user]
